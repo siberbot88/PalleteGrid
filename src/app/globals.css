@@ -1,26 +1,119 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --app-canvas: #fbfbf8;
+  --app-canvas-pure: #ffffff;
+  --app-ink: #101014;
+  --app-muted: #7c7d85;
+  --app-subtle: #ececec;
+  --app-soft-pink: #ffd7ea;
+  --app-pale-green: #ddf6df;
+  --app-neon-blue: #00c8ff;
+  --app-neon-blue-dark: #0088ff;
+  --app-shadow: 0 18px 60px rgba(16, 16, 20, 0.08);
+  --radius-sm: 12px;
+  --radius-md: 20px;
+  --radius-lg: 32px;
+  --radius-xl: 48px;
+  --radius-full: 999px;
+  --step-0: clamp(0.95rem, 0.9rem + 0.2vw, 1.05rem);
+  --step-1: clamp(1.15rem, 1rem + 0.8vw, 1.5rem);
+  --step-2: clamp(1.5rem, 1.2rem + 1.6vw, 2.3rem);
+  --step-3: clamp(2.2rem, 1.7rem + 3vw, 4.6rem);
+  --step-4: clamp(3rem, 2rem + 5vw, 7rem);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-background: var(--app-canvas);
+  --color-foreground: var(--app-ink);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-space-grotesk);
+  --font-mono: var(--font-ibm-plex-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background:
+    radial-gradient(circle at 12% 12%, rgba(255, 215, 234, 0.52), transparent 30%),
+    radial-gradient(circle at 88% 8%, rgba(0, 200, 255, 0.18), transparent 28%),
+    radial-gradient(circle at 70% 88%, rgba(221, 246, 223, 0.7), transparent 32%),
+    var(--app-canvas);
+  color: var(--app-ink);
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+}
+
+::selection {
+  background: var(--app-neon-blue);
+  color: var(--app-ink);
+}
+
+button,
+select,
+input,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.section-kicker {
+  color: var(--app-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.hero-title {
+  font-family: var(--font-space-grotesk), sans-serif;
+  font-size: var(--step-4);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 0.92;
+}
+
+.hero-title.is-split .word {
+  animation: word-rise 0.7s ease both;
+  animation-delay: calc(var(--word-index) * 70ms);
+  display: inline-block;
+}
+
+.preview-card {
+  height: 100%;
+}
+
+.react-grid-item.react-grid-placeholder {
+  background: var(--app-neon-blue);
+  border-radius: 24px;
+  opacity: 0.18;
+}
+
+.react-grid-item.react-draggable-dragging .preview-card {
+  box-shadow: 0 24px 72px rgba(16, 16, 20, 0.16);
+  transform: scale(1.01);
+}
+
+@keyframes word-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
 }
