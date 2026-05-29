@@ -149,7 +149,25 @@ function colorForRole(role: ColorRole, input: GeneratePaletteInput): GeneratedCo
 
   if (role === "ink") {
     const canvasHex = getCanvasHex(input);
-    hex = getContrastRatio("#101014", canvasHex) >= getContrastRatio("#FFFFFF", canvasHex) ? "#101014" : "#FFFFFF";
+    const canvas = hexToOklch(canvasHex);
+    const random = seededRandom(input.seed + 311);
+    const canvasIsDark = canvas.l < 0.5;
+    const lightInk = [
+      hex,
+      oklchToHex({ l: 0.97 - random() * 0.05, c: 0.012 + random() * 0.035, h: wrapHue(oklch.h + 12) }),
+      oklchToHex({ l: 0.92 - random() * 0.04, c: 0.02 + random() * 0.04, h: wrapHue(oklch.h + 54) }),
+      "#FFFFFF",
+    ];
+    const darkInk = [
+      hex,
+      oklchToHex({ l: 0.08 + random() * 0.08, c: 0.012 + random() * 0.05, h: wrapHue(oklch.h + 180) }),
+      oklchToHex({ l: 0.13 + random() * 0.07, c: 0.018 + random() * 0.06, h: wrapHue(oklch.h + 225) }),
+      "#101014",
+    ];
+    const candidates = canvasIsDark ? [...lightInk, ...darkInk] : [...darkInk, ...lightInk];
+    hex =
+      candidates.find((candidate) => getContrastRatio(candidate, canvasHex) >= 4.5) ??
+      candidates.reduce((best, candidate) => (getContrastRatio(candidate, canvasHex) > getContrastRatio(best, canvasHex) ? candidate : best), candidates[0]);
   }
 
   if (role === "primary" && input.contrastMode === "accessible") {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getContrastRatio, getTextColorForBackground } from "@/lib/color/contrast";
+import { getContrastRatio, getRelativeLuminance, getTextColorForBackground } from "@/lib/color/contrast";
 import { generatePalette } from "@/lib/color/generatePalette";
 import { isValidHex, normalizeHex } from "@/lib/color/hex";
 import { getRolesForSize } from "@/lib/color/roles";
@@ -40,8 +40,12 @@ describe("color engine", () => {
   it("uses white ink on dark canvas and dark ink on white canvas", () => {
     const dark = generatePalette({ ...baseInput, size: 6, baseColor: "#050505" });
     const light = generatePalette({ ...baseInput, size: 6, baseColor: "#FFFFFF" });
-    expect(dark.colors.find((color) => color.role === "ink")?.hex).toBe("#FFFFFF");
-    expect(light.colors.find((color) => color.role === "ink")?.hex).toBe("#101014");
+    const darkCanvasInk = dark.colors.find((color) => color.role === "ink")?.hex ?? "#000000";
+    const lightCanvasInk = light.colors.find((color) => color.role === "ink")?.hex ?? "#FFFFFF";
+    expect(getRelativeLuminance(darkCanvasInk)).toBeGreaterThan(0.72);
+    expect(getRelativeLuminance(lightCanvasInk)).toBeLessThan(0.08);
+    expect(getContrastRatio(darkCanvasInk, "#050505")).toBeGreaterThanOrEqual(4.5);
+    expect(getContrastRatio(lightCanvasInk, "#FFFFFF")).toBeGreaterThanOrEqual(4.5);
   });
 
   it("adds a white token when canvas and ink are not white", () => {

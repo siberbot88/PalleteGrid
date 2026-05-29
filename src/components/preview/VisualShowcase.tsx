@@ -1,5 +1,5 @@
 import type { PreviewTheme } from "@/components/preview/PreviewCard";
-import { getTextColorForBackground } from "@/lib/color/contrast";
+import { getRelativeLuminance, getTextColorForBackground } from "@/lib/color/contrast";
 
 function headingFont(theme: PreviewTheme) {
   return { fontFamily: `"${theme.headingFont}", sans-serif` };
@@ -14,6 +14,11 @@ function color(theme: PreviewTheme, index: number) {
   return usable[index % usable.length] ?? theme.primary;
 }
 
+function chartColor(theme: PreviewTheme, index: number, background?: string) {
+  const usable = chartColors(theme, background);
+  return usable[index % usable.length] ?? "#FFFFFF";
+}
+
 function textOn(background: string) {
   return getTextColorForBackground(background);
 }
@@ -21,10 +26,21 @@ function textOn(background: string) {
 function decorativeColors(theme: PreviewTheme) {
   const usable = theme.colors.filter((item) => {
     const normalized = item.toUpperCase();
-    return normalized !== "#FFFFFF" && normalized !== "#101014" && normalized !== "#000000";
+    return normalized !== "#FFFFFF" && getRelativeLuminance(normalized) > 0.04;
   });
   return usable.length > 0 ? usable : [theme.primary, theme.secondary, theme.accent].filter(
-    (item) => item.toUpperCase() !== "#FFFFFF" && item.toUpperCase() !== "#101014" && item.toUpperCase() !== "#000000",
+    (item) => item.toUpperCase() !== "#FFFFFF" && getRelativeLuminance(item) > 0.04,
+  );
+}
+
+function chartColors(theme: PreviewTheme, background?: string) {
+  const backgroundHex = background?.toUpperCase();
+  const usable = theme.colors.filter((item) => {
+    const normalized = item.toUpperCase();
+    return normalized !== backgroundHex && getRelativeLuminance(normalized) > 0.04;
+  });
+  return usable.length > 0 ? usable : ["#FFFFFF", theme.primary, theme.secondary, theme.accent].filter(
+    (item) => item.toUpperCase() !== backgroundHex && getRelativeLuminance(item) > 0.04,
   );
 }
 
@@ -124,7 +140,9 @@ function TypeSpecimen({ theme }: { theme: PreviewTheme }) {
 
 function DashboardSample({ theme }: { theme: PreviewTheme }) {
   const p = palette(theme);
-  const chartColors = decorativeColors(theme);
+  const chartPanel = color(theme, 0);
+  const chartAccent = chartColor(theme, 0, chartPanel);
+  const chartAccentAlt = chartColor(theme, 1, chartPanel);
   const bars = [24, 42, 31, 55, 39, 68, 48];
   const line = [28, 34, 30, 46, 42, 58, 70];
   const max = 75;
@@ -152,14 +170,14 @@ function DashboardSample({ theme }: { theme: PreviewTheme }) {
         ))}
       </div>
       <div className="mt-5 grid gap-5 md:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-[8px] p-4" style={{ background: color(theme, 0) }}>
+        <div className="rounded-[8px] p-4" style={{ background: chartPanel }}>
           <svg viewBox="0 0 320 170" role="img" aria-label="Dummy bar and line chart" className="h-56 w-full">
             {[0, 1, 2, 3].map((tick) => (
-              <line key={tick} x1="18" x2="304" y1={28 + tick * 34} y2={28 + tick * 34} stroke={p.ink} strokeOpacity="0.12" />
+              <line key={tick} x1="18" x2="304" y1={28 + tick * 34} y2={28 + tick * 34} stroke={chartAccent} strokeOpacity="0.22" />
             ))}
             {bars.map((value, index) => (
               <rect
-                fill={color(theme, index + 2)}
+                fill={chartColor(theme, index + 1, chartPanel)}
                 height={(value / max) * 112}
                 key={`${value}-${index}`}
                 rx="8"
@@ -168,23 +186,23 @@ function DashboardSample({ theme }: { theme: PreviewTheme }) {
                 y={150 - (value / max) * 112}
               />
             ))}
-            <path d={path} fill="none" stroke={p.ink} strokeLinecap="round" strokeWidth="4" />
+            <path d={path} fill="none" stroke={chartAccent} strokeLinecap="round" strokeWidth="4" />
             {line.map((value, index) => (
-              <circle cx={x(index)} cy={y(value)} fill={color(theme, index + 1)} key={`${value}-dot-${index}`} r="5" stroke={p.canvas} strokeWidth="2" />
+              <circle cx={x(index)} cy={y(value)} fill={chartColor(theme, index + 2, chartPanel)} key={`${value}-dot-${index}`} r="5" stroke={chartAccentAlt} strokeWidth="2" />
             ))}
           </svg>
         </div>
         <div className="grid gap-4">
-          <div className="grid place-items-center rounded-[8px] p-4" style={{ background: color(theme, 0) }}>
+          <div className="grid place-items-center rounded-[8px] p-4" style={{ background: chartPanel }}>
             <svg viewBox="0 0 140 140" role="img" aria-label="Dummy donut chart" className="h-36 w-36">
-              <circle cx="70" cy="70" fill="none" r="42" stroke={color(theme, 2)} strokeWidth="22" />
-              <circle cx="70" cy="70" fill="none" r="42" stroke={color(theme, 3)} strokeDasharray="92 264" strokeLinecap="butt" strokeWidth="22" transform="rotate(-90 70 70)" />
+              <circle cx="70" cy="70" fill="none" r="42" stroke={chartAccent} strokeWidth="22" />
+              <circle cx="70" cy="70" fill="none" r="42" stroke={chartAccentAlt} strokeDasharray="92 264" strokeLinecap="butt" strokeWidth="22" transform="rotate(-90 70 70)" />
               <circle cx="70" cy="70" fill={p.canvas} r="28" />
               <text fill={p.ink} fontSize="22" fontWeight="900" textAnchor="middle" x="70" y="78">342</text>
             </svg>
           </div>
-          <div className="rounded-[8px] p-4" style={{ background: color(theme, 0) }}>
-            {chartColors.slice(0, 4).map((chip, index) => (
+          <div className="rounded-[8px] p-4" style={{ background: chartPanel }}>
+            {chartColors(theme, chartPanel).slice(0, 4).map((chip, index) => (
               <span className="mb-2 block h-3 rounded-full" key={`${chip}-line-${index}`} style={{ width: `${88 - index * 15}%`, background: chip }} />
             ))}
           </div>

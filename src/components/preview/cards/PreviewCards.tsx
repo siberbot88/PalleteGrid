@@ -1,5 +1,5 @@
 import type { PreviewTheme } from "@/components/preview/PreviewCard";
-import { getTextColorForBackground } from "@/lib/color/contrast";
+import { getRelativeLuminance, getTextColorForBackground } from "@/lib/color/contrast";
 
 function headingFont(theme: PreviewTheme) {
   return { fontFamily: `"${theme.headingFont}", sans-serif` };
@@ -8,7 +8,7 @@ function headingFont(theme: PreviewTheme) {
 function paletteColor(theme: PreviewTheme, index: number) {
   const usable = theme.colors.filter((item) => {
     const normalized = item.toUpperCase();
-    return normalized !== "#FFFFFF" && normalized !== "#101014" && normalized !== "#000000";
+    return normalized !== "#FFFFFF" && getRelativeLuminance(normalized) > 0.04;
   });
   return usable[index % usable.length] ?? theme.primary;
 }
@@ -127,18 +127,52 @@ export function StatsPreviewCard({ theme }: { theme: PreviewTheme }) {
 }
 
 export function FormPreviewCard({ theme }: { theme: PreviewTheme }) {
+  const accent = paletteColor(theme, 0);
+  const accentAlt = paletteColor(theme, 1);
+
   return (
-    <div className="grid h-full content-between gap-4">
-      <label className="grid gap-2 text-sm font-semibold">
-        Project name
-        <span className="rounded-2xl px-4 py-3 font-normal opacity-90" style={{ background: paletteColor(theme, 0), color: textOn(paletteColor(theme, 0)) }}>PaletteGrid system</span>
-      </label>
-      <label className="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold" style={{ background: paletteColor(theme, 0), color: textOn(paletteColor(theme, 0)) }}>
-        Accessible contrast
-        <span className="h-6 w-11 rounded-full p-1" style={{ background: theme.primary }}>
-          <span className="block h-4 w-4 translate-x-5 rounded-full" style={{ background: paletteColor(theme, 0) }} />
-        </span>
-      </label>
+    <div className="grid h-full content-between gap-4 text-sm">
+      <div className="grid gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <span className="font-semibold">Project setup</span>
+          <span className="rounded-full px-3 py-1 text-xs font-semibold" style={{ background: accent, color: textOn(accent) }}>
+            Ready
+          </span>
+        </div>
+        <label className="grid gap-2 font-semibold">
+          Project name
+          <span
+            className="flex items-center gap-3 rounded-[14px] border px-3 py-3 font-medium"
+            style={{ background: theme.canvas, borderColor: accent, color: theme.ink }}
+          >
+            <span className="h-3 w-3 rounded-full" style={{ background: accent }} />
+            PaletteGrid system
+          </span>
+        </label>
+        <div className="rounded-[14px] border p-3" style={{ background: theme.canvas, borderColor: accentAlt, color: theme.ink }}>
+          <div className="flex items-center justify-between gap-3">
+            <span className="font-semibold">Accessible contrast</span>
+            <span className="h-6 w-11 rounded-full p-1" style={{ background: accent }}>
+              <span className="block h-4 w-4 translate-x-5 rounded-full" style={{ background: accentAlt }} />
+            </span>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {["Canvas", "Ink", "CTA"].map((item, index) => (
+              <span
+                className="rounded-full border px-3 py-1 text-xs font-semibold"
+                key={item}
+                style={{
+                  background: index === 2 ? accentAlt : "transparent",
+                  borderColor: index === 2 ? accentAlt : accent,
+                  color: index === 2 ? textOn(accentAlt) : theme.ink,
+                }}
+              >
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
       <button
         className="rounded-full px-4 py-3 text-sm font-semibold"
         style={{ background: theme.primary, color: theme.textOnPrimary }}
@@ -196,7 +230,7 @@ export function ComponentKitCard({ theme }: { theme: PreviewTheme }) {
           {[theme.canvas, theme.ink, theme.primary, theme.secondary, theme.accent]
             .filter((color) => {
               const normalized = color.toUpperCase();
-              return normalized !== "#FFFFFF" && normalized !== "#101014" && normalized !== "#000000";
+              return normalized !== "#FFFFFF" && getRelativeLuminance(normalized) > 0.04;
             })
             .map((color, index) => (
             <span className="h-8 w-8 rounded-full shadow-inner" key={`${color}-${index}`} style={{ background: color }} />
